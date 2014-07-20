@@ -116,3 +116,22 @@ After imputting missing  data mean and median is 9504 and 10395 respectively.
 ```
  
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```r
+reorderFilledData$date <- as.Date(reorderFilledData$date)
+weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
+reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
+sumfillsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, sum))
+countdays <- melt(tapply(reorderFilledData$day, reorderFilledData$interval, length))
+mergedfill <- merge(sumfillsteps,countdays, by.x = "Var1", by.y = "Var1")
+averagedfill <- cbind(mergedfill,mergedfill$value.x/mergedfill$value.y)
+dimnames(averagedfill)[[2]] <- c("interval","totalsteps","countdays","average")
+```
+
+```r
+library(lattice)
+xyplot(average ~ interval | countdays, data = averagedfill, layout = c(1, 2), type="l")
+```
+
+![plot of chunk weeksplot](figure/weeksplot.png) 
+
