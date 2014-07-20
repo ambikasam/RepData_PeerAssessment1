@@ -121,17 +121,28 @@ After imputting missing  data mean and median is 9504 and 10395 respectively.
 reorderFilledData$date <- as.Date(reorderFilledData$date)
 weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
 reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
-sumfillsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, sum))
-countdays <- melt(tapply(reorderFilledData$day, reorderFilledData$interval, length))
-mergedfill <- merge(sumfillsteps,countdays, by.x = "Var1", by.y = "Var1")
-averagedfill <- cbind(mergedfill,mergedfill$value.x/mergedfill$value.y)
-dimnames(averagedfill)[[2]] <- c("interval","totalsteps","countdays","average")
+
+avgsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, mean))
+sumsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, sum))
+weekdaymean <- melt(tapply(reorderFilledData$steps, reorderFilledData$day, mean))
+
+tmp <- merge(reorderFilledData,avgsteps,by.x="interval",by.y="Var1")
+
+weekdayinterval <- reorderFilledData$interval[reorderFilledData$day == "weekday"]
+weekendinterval <- reorderFilledData$interval[reorderFilledData$day == "weekend"]
+
+weekdayavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "weekday"],  weekdayinterval, mean))
+weekendavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "weekend"],  weekendinterval, mean))
+
+weeksmerged <- merge(weekdayavg,weekendavg,by.x="Var1",by.y="Var1")
+finalmerge <- merge(weeksmerged,avgsteps,by.x="Var1",by.y="Var1")
 ```
 
 ```r
 library(lattice)
-xyplot(average ~ interval | countdays, data = averagedfill, layout = c(1, 2), type="l")
+xyplot(value ~ interval | day, data = tmp, layout = c(1, 2), type="l")
 ```
 
 ![plot of chunk weeksplot](figure/weeksplot.png) 
+
 
