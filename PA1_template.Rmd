@@ -102,37 +102,35 @@ reorderFilledData$date <- as.Date(reorderFilledData$date)
 weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
 reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
 
-avgsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, mean))
-sumsteps <- melt(tapply(reorderFilledData$steps,  reorderFilledData$interval, sum))
-weekdaymean <- melt(tapply(reorderFilledData$steps, reorderFilledData$day, mean))
-
-tmp <- merge(reorderFilledData,avgsteps,by.x="interval",by.y="Var1")
-
 weekdayinterval <- reorderFilledData$interval[reorderFilledData$day == "weekday"]
 weekendinterval <- reorderFilledData$interval[reorderFilledData$day == "weekend"]
+
+#--
+weekdayloc <- which(reorderFilledData$day == "weekday")
+weekendloc <- which(reorderFilledData$day == "weekend")
+#--
 
 weekdayavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "weekday"],  weekdayinterval, mean))
 weekendavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "weekend"],  weekendinterval, mean))
 
 weeksmerged <- merge(weekdayavg,weekendavg,by.x="Var1",by.y="Var1")
-#weeksmerged1 <- cbind(weeksmerged,val = (weeksmerged$value.x + weeksmerged$value.y))
+#finalmerge <- merge(weeksmerged,avgsteps,by.x="Var1",by.y="Var1")
 
 finalmerge1 <- merge(reorderFilledData,weeksmerged,by.x="interval",by.y="Var1")
 #reorderFilledData <- filledData[order(filledData$date,filledData$interval),c(2,3,1)]
 final <- finalmerge1[order(filledData$date,filledData$interval),]
 
+final$val[weekdayloc] <- final$value.x[weekdayloc]
+final$val[weekendloc] <- final$value.y[weekendloc]
+
+final <- final[order(final$date,final$interval),] 
+
 ```
 ```{r weeksplot} 
 library(lattice)
-par(mfcol=c(2,1))
-plot(value.x ~ interval, data = final, type="l",col="blue")
-plot(value.y ~ interval, data = final, type="l",col="blue")
-
-
-
-
+xyplot(val ~ interval | day, data = final, layout = c(1, 2), type="l", ylab = "steps")
 ```
 
 ```{r cleanup, echo=FALSE}
-#rm(list=ls())
+rm(list=ls())
 ```
