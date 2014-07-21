@@ -115,13 +115,24 @@ weekdayavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "week
 weekendavg <- melt(tapply(reorderFilledData$steps[reorderFilledData$day == "weekend"],  weekendinterval, mean))
 
 weeksmerged <- merge(weekdayavg,weekendavg,by.x="Var1",by.y="Var1")
-finalmerge <- merge(weeksmerged,avgsteps,by.x="Var1",by.y="Var1")
+#weeksmerged1 <- cbind(weeksmerged,val = (weeksmerged$value.x + weeksmerged$value.y))
+
+finalmerge1 <- merge(reorderFilledData,weeksmerged,by.x="interval",by.y="Var1")
+#reorderFilledData <- filledData[order(filledData$date,filledData$interval),c(2,3,1)]
+final <- finalmerge1[order(filledData$date,filledData$interval),]
+
 ```
 ```{r weeksplot} 
 library(lattice)
-xyplot(value ~ interval | day, data = tmp, layout = c(1, 2), type="l")
+par(mfcol=c(2,1))
+plot(value.x ~ interval, data = final, type="l",col="blue")
+plot(value.y ~ interval, data = final, type="l",col="blue")
+
+
+
+
 ```
 
 ```{r cleanup, echo=FALSE}
-rm(list=ls())
+#rm(list=ls())
 ```
